@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STRIXE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06070d;
+    --panel-bg: rgba(11, 13, 24, 0.95);
+    --accent: #00e5ff;
+    --accent-dim: rgba(0, 229, 255, 0.12);
+    --accent-subtle: rgba(0, 229, 255, 0.08);
+    --accent-glow: rgba(0, 229, 255, 0.5);
+    --text: #c0d0e0;
+    --text-light: #e0e8f0;
+    --text-mid: #8899aa;
+    --text-dim: #6b7a8a;
+    --red: #ff3355;
+    --red-dim: rgba(255, 51, 85, 0.1);
+    --gold: #ffd700;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'Share Tech Mono', monospace; height: 100%; overflow: hidden; user-select: none; }
+
+  .game-container {
+    width: 100vw; height: 100vh;
+    display: grid;
+    grid-template-columns: 210px 1fr 210px;
+    grid-template-rows: 50px 1fr 42px;
+    gap: 5px;
+    padding: 5px;
+  }
+
+  .top-bar {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 18px;
+    background: var(--panel-bg);
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    border-radius: 5px;
+  }
+  .logo {
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 18px;
+    color: var(--accent); letter-spacing: 5px;
+    text-shadow: 0 0 18px var(--accent-glow);
+  }
+  .logo span { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; margin-left: 8px; font-weight: 400; }
+  .top-stats { display: flex; gap: 28px; align-items: center; }
+  .stat { text-align: center; }
+  .stat-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-value { font-size: 16px; font-weight: 700; font-family: 'Orbitron', sans-serif; }
+  .stat-value.cyan { color: var(--accent); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.white { color: var(--text-light); }
+  .top-right { font-size: 11px; color: var(--text-dim); }
+  .top-right kbd { background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.2); padding: 2px 6px; border-radius: 3px; color: var(--accent); font-size: 10px; }
+
+  .left-sidebar, .right-sidebar { display: flex; flex-direction: column; gap: 5px; overflow: hidden; }
+  .panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--accent-dim);
+    border-radius: 5px;
+    padding: 12px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  .panel::-webkit-scrollbar { width: 3px; }
+  .panel::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.2); border-radius: 2px; }
+  .panel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px; font-weight: 700;
+    color: var(--accent); letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid rgba(0,229,255,0.1);
+  }
+  .enemy-entry { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .enemy-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .enemy-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .enemy-status { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+
+  .modifier-entry {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+    padding: 5px 7px; background: rgba(0,229,255,0.05);
+    border-radius: 3px; border: 1px solid rgba(0,229,255,0.08);
+    position: relative; flex-wrap: wrap;
+  }
+  .modifier-entry:hover { background: rgba(0,229,255,0.09); }
+  .modifier-icon {
+    width: 18px; height: 18px; background: rgba(0,229,255,0.15);
+    border-radius: 3px; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--accent); flex-shrink: 0;
+  }
+  .modifier-name { font-size: 10px; color: var(--text-mid); flex: 1; }
+  .modifier-desc {
+    display: none; width: 100%; font-size: 9px; color: var(--text-dim);
+    padding: 2px 0 0 26px; line-height: 1.3;
+  }
+  .modifier-entry:hover .modifier-desc { display: block; }
+  .modifier-discard {
+    display: none; width: 14px; height: 14px; border-radius: 3px;
+    background: var(--red-dim); border: 1px solid rgba(255,51,85,0.3);
+    color: var(--red); font-size: 10px; line-height: 14px; text-align: center;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .modifier-discard:hover { background: rgba(255,51,85,0.25); }
+  .modifier-entry:hover .modifier-discard { display: block; }
+
+  .cue-entry {
+    padding: 6px 8px; margin-bottom: 4px; border-radius: 3px; cursor: pointer;
+    font-size: 11px; font-weight: 700; font-family: 'Orbitron', sans-serif; letter-spacing: 1px;
+    border: 1px solid transparent; transition: background 0.15s;
+  }
+  .cue-entry:hover { background: rgba(0,229,255,0.1); }
+  .cue-entry.active { background: rgba(0,229,255,0.06); border-color: rgba(0,229,255,0.2); color: var(--accent); }
+  .cue-entry.inactive { color: var(--text-dim); }
+  .cue-highlight { animation: cue-pulse 0.5s ease 5; }
+  @keyframes cue-pulse {
+    0%, 100% { border-color: rgba(0,229,255,0.12); }
+    50% { border-color: rgba(255,215,0,0.8); box-shadow: 0 0 12px rgba(255,215,0,0.3); }
+  }
+
+  .event-entry {
+    font-size: 10px; color: var(--text-dim); margin-bottom: 5px;
+    padding: 2px 6px; background: rgba(0,229,255,0.03); border-radius: 2px;
+  }
+  .event-entry strong { color: var(--text-mid); }
+
+  .arena-wrapper {
+    position: relative;
+    background: var(--panel-bg);
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #arena { display: block; cursor: crosshair; }
+
+  .bottom-bar {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 18px;
+    background: var(--panel-bg);
+    border: 1px solid var(--accent-dim);
+    border-radius: 5px;
+  }
+  .wave-info { display: flex; align-items: baseline; gap: 10px; }
+  .wave-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .wave-num { font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 800; color: var(--accent); }
+  .wave-name { font-size: 11px; color: var(--red); text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
+  .bottom-mid { font-size: 10px; color: var(--text-dim); }
+  .bottom-mid .hl { color: var(--accent); }
+  .gold-display { display: flex; align-items: center; gap: 7px; }
+  .gold-icon { color: var(--gold); font-size: 18px; }
+  .gold-value { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 800; color: var(--gold); text-shadow: 0 0 10px rgba(255,215,0,0.4); }
+</style>
+</head>
+<body>
+<div class="game-container">
+
+  <div class="top-bar">
+    <div><span class="logo">STRIXE <span>v0.1.0</span></span></div>
+    <div class="top-stats">
+      <div class="stat">
+        <div class="stat-label">Turn</div>
+        <div style="display:flex;align-items:baseline;gap:5px;">
+          <div class="stat-value cyan" id="hud-turn-num">01</div>
+          <div id="hud-turn-status" style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--accent);">SAFE</div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Lives</div>
+        <div class="stat-value red" id="hud-lives">&#x2764; &#x2764; &#x2764;</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Time</div>
+        <div class="stat-value white" id="hud-timer">00:00</div>
+      </div>
+    </div>
+    <div class="top-right"><kbd>SPACE</kbd> FAST FWD</div>
+  </div>
+
+  <div class="left-sidebar">
+    <div class="panel">
+      <div class="panel-title">Threat Matrix</div>
+      <div id="hud-threats"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Modifiers</div>
+      <div id="hud-modifiers"><div class="enemy-status">NONE</div></div>
+    </div>
+  </div>
+
+  <div class="arena-wrapper">
+    <canvas id="arena"></canvas>
+  </div>
+
+  <div class="right-sidebar">
+    <div class="panel" id="hud-cuebank-panel">
+      <div class="panel-title">Cue Bank</div>
+      <div id="hud-cuebank"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Event Log</div>
+      <div id="hud-log"></div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="wave-info">
+      <div>
+        <div class="wave-label">Wave</div>
+        <div style="display:flex;align-items:baseline;gap:3px;">
+          <span class="wave-num" id="hud-wave-num">01</span>
+        </div>
+      </div>
+      <div class="wave-name" id="hud-wave-name">Wave 1</div>
+    </div>
+    <div class="bottom-mid">ENEMIES: <span class="hl" id="hud-enemies">00</span> &nbsp; POCKETED: <span class="hl" id="hud-pocketed">00</span> &nbsp; COMBO: <span class="hl" id="hud-combo">0</span></div>
+    <div class="gold-display">
+      <span class="gold-icon">&#x25C9;</span>
+      <span class="gold-value" id="hud-gold">10</span>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { Game } from './js/game.js';
+
+const canvas = document.getElementById('arena');
+const hud = {
+  lives: document.getElementById('hud-lives'),
+  timer: document.getElementById('hud-timer'),
+  gold: document.getElementById('hud-gold'),
+  waveNum: document.getElementById('hud-wave-num'),
+  waveName: document.getElementById('hud-wave-name'),
+  enemies: document.getElementById('hud-enemies'),
+  pocketed: document.getElementById('hud-pocketed'),
+  combo: document.getElementById('hud-combo'),
+  turnNum: document.getElementById('hud-turn-num'),
+  turnStatus: document.getElementById('hud-turn-status'),
+  threatMatrix: document.getElementById('hud-threats'),
+  modifiers: document.getElementById('hud-modifiers'),
+  cueBank: document.getElementById('hud-cuebank'),
+  cueBankPanel: document.getElementById('hud-cuebank-panel'),
+  eventLog: document.getElementById('hud-log'),
+};
+
+const game = new Game(canvas, hud);
+game.start();
+</script>
+</body>
+</html>
